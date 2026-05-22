@@ -47,6 +47,10 @@ zopen_get_version() {
 
 zopen_custom_check() {
   . .venv/bin/activate
+  
+  # Install pytest if not already available
+  pip install pytest || return $?
+  
   pip install --force-reinstall --no-deps dist/*.whl || return $?
   
   # Copy tests to temporary directory outside source tree
