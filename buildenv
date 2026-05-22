@@ -1,0 +1,149 @@
+# bump: python-xxhash-version /PYTHON_XXHASH_VERSION="(.*)"/ https://github.com/ifduyue/python-xxhash.git|*
+PYTHON_XXHASH_VERSION="3.7.0"
+
+###
+### Build control file for the python-xxhash port
+###
+
+###
+### Required Environment Variables
+###
+export ZOPEN_PROJECT_NAME="python-xxhash"
+export ZOPEN_BUILD_LINE="STABLE"
+export ZOPEN_STABLE_URL="https://github.com/ifduyue/python-xxhash.git"
+export ZOPEN_STABLE_TAG="v3.7.0"
+export ZOPEN_STABLE_DEPS="check_python grep"
+export ZOPEN_DEV_URL=""
+export ZOPEN_DEV_DEPS="check_python grep"
+export ZOPEN_CATEGORIES="development"
+export ZOPEN_RUNTIME_DEPS="check_python"
+# export ZOPEN_SYSTEM_PREREQ="zos25" # optional system pre-req (default=zos25)
+
+
+###
+### Build settings (Port type: BUILD, Build system: Python)
+###
+### Settings for Python build system (with C extensions)
+### Build, check, install, and env are handled natively by zopen-build
+export ZOPEN_BUILD_SYSTEM="Python"
+export ZOPEN_CLONE_SUBMODULES="yes"
+export ZOPEN_EXTRA_CFLAGS="-fvisibility=default"
+
+
+###
+### Required user-supplied functions
+###
+
+# zopen_check_results is provided natively by zopen-build for Python
+
+zopen_get_version() {
+  echo "$PYTHON_XXHASH_VERSION"
+}
+
+
+###
+### Custom Build Logic (if applicable)
+###
+
+zopen_custom_check() {
+  . .venv/bin/activate
+  pip install --force-reinstall --no-deps dist/*.whl || return $?
+  
+  # Copy tests to temporary directory outside source tree
+  test_dir="/tmp/${ZOPEN_PROJECT_NAME}_tests_$$"
+  mkdir -p "${test_dir}" || return $?
+  cp -R tests/* "${test_dir}/" || return $?
+  
+  cd "${test_dir}" || return $?
+  python -m pytest -v
+  zopen_check_result=$?
+  
+  cd - > /dev/null
+  rm -rf "${test_dir}"
+  deactivate
+  return "${zopen_check_result}"
+}
+
+zopen_check_results() {
+  dir="$1"; pfx="$2"; chk="$1/$2_check.log"
+  
+  # Parse pytest summary line for passed/failed/error counts
+  totalTests=$(grep -oE "([0-9]+) passed" "${chk}" | awk '{sum += $1} END {print sum+0}')
+  actualFailures=$(grep -oE "([0-9]+) (error|failed)" "${chk}" | awk '{sum += $1} END {print sum+0}')
+  
+  # Handle edge case where no tests collected
+  if grep -q "collected 0 items" "${chk}"; then
+    totalTests=0
+    actualFailures=0
+  fi
+  
+  echo "actualFailures:${actualFailures}"
+  echo "totalTests:${totalTests}"
+  echo "expectedFailures:0"
+}
+
+export ZOPEN_CHECK="zopen_custom_check"
+
+###
+### Optional User-Supplied Hooks (uncomment to use)
+###
+
+#zopen_append_to_env() {
+#  ## This function runs as part of generation of the .env file. The output of the
+#  ## function is appended to .env.
+#}
+#
+#zopen_append_to_setup(){
+#  ## This function runs as part of generation of the setup.sh file. The output of
+#  ## the function is appended to setup.sh.
+#}
+#
+#zopen_append_to_validate_install(){
+#  ## This function runs as part of generation of the install_test.sh file. The
+#  ## output of the function is appended to install_test.sh script.
+#}
+#
+#zopen_install_caveats(){
+#  ## This function is run post install. All stdout messages are captured and
+#  ## added to the metadata.json as installation caveats.
+#}
+#
+zopen_init(){
+  ## This function runs after code is downloaded and patched but before the code
+  ## is built.
+  ## CRITICAL for C extension linking: append LIBS to LDFLAGS
+  export LDFLAGS="$LDFLAGS $LIBS"
+}
+#
+#zopen_post_buildenv(){
+#  ## This function runs after the 'buildenv' is processed.
+#}
+#
+#zopen_pre_build(){
+#  ## This function runs before the 'make' step of the build is run.
+#}
+#
+#zopen_pre_check(){
+#  ## This function runs before the 'check' step of the build is run.
+#}
+#
+#zopen_pre_configure(){
+#  ## This function runs before the 'configure' step of the build is run.
+#}
+#
+#zopen_pre_install(){
+#  ## This function runs before the 'install' step of the build is run.
+#}
+#
+#zopen_post_install(){
+#  ## This function runs after the 'install' step of the build is run.
+#}
+#
+#zopen_pre_patch(){
+#  ## This function runs before the 'patch' step of the build is run.
+#}
+#
+#zopen_pre_terminate(){
+#  ## This function runs before 'zopen build' terminates.
+#}
+
