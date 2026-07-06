@@ -1,5 +1,5 @@
 # bump: python-xxhash-version /PYTHON_XXHASH_VERSION="(.*)"/ https://github.com/ifduyue/python-xxhash.git|*
-PYTHON_XXHASH_VERSION="3.8.0"
+PYTHON_XXHASH_VERSION="3.8.1"
 
 ###
 ### Build control file for the python-xxhash port
