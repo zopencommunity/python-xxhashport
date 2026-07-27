@@ -8,7 +8,8 @@ node('linux') {
     build job: 'Port-Pipeline', parameters: [
       string(name: 'PORT_GITHUB_REPO', value: 'https://github.com/zopencommunity/python-xxhashport.git'),
       string(name: 'PORT_DESCRIPTION', value: 'Python binding for the xxHash library by Yann Collet'),
-      string(name: 'BUILD_LINE', value: 'STABLE')
+      string(name: 'BUILD_LINE', value: 'STABLE'),
+      booleanParam(name: 'PUBLISH_PYTHON_WHEEL', value: true)
     ]
   }
 }
