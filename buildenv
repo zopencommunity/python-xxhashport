@@ -45,26 +45,24 @@ zopen_get_version() {
 ### Custom Build Logic (if applicable)
 ###
 
-zopen_custom_check() {
-  . .venv/bin/activate
-  
-  # Install pytest if not already available
-  pip install pytest || return $?
-  
-  pip install --force-reinstall --no-deps dist/*.whl || return $?
-  
-  # Copy tests to temporary directory outside source tree
+# Run the tests for one interpreter. zopen-build calls this once per Python
+# version being built, with that version's virtual environment already active
+# and the wheel built for it already installed, so 'python' here is the right
+# interpreter and dist/ never has to be inspected.
+#
+# The only thing this port needs to add is where the tests run from: the source
+# tree holds an xxhash/ directory that shadows the installed package, so pytest
+# has to be started somewhere else for the wheel to be what gets tested.
+zopen_python_test() {
   test_dir="/tmp/${ZOPEN_PROJECT_NAME}_tests_$$"
+  rm -rf "${test_dir}"
   mkdir -p "${test_dir}" || return $?
   cp -R tests/* "${test_dir}/" || return $?
-  
-  cd "${test_dir}" || return $?
-  python -m pytest -v
+
+  (cd "${test_dir}" && python -m pytest -v)
   zopen_check_result=$?
-  
-  cd - > /dev/null
+
   rm -rf "${test_dir}"
-  deactivate
   return "${zopen_check_result}"
 }
 
@@ -85,8 +83,6 @@ zopen_check_results() {
   echo "totalTests:${totalTests}"
   echo "expectedFailures:0"
 }
-
-export ZOPEN_CHECK="zopen_custom_check"
 
 ###
 ### Optional User-Supplied Hooks (uncomment to use)
