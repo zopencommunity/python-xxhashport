@@ -11,7 +11,10 @@ PYTHON_XXHASH_VERSION="3.8.1"
 export ZOPEN_PROJECT_NAME="python-xxhash"
 export ZOPEN_BUILD_LINE="STABLE"
 export ZOPEN_STABLE_URL="https://github.com/ifduyue/python-xxhash.git"
-export ZOPEN_STABLE_TAG="v3.7.0"
+# Follow the version variable rather than a literal, so the bump bot
+# updating PYTHON_XXHASH_VERSION actually changes what gets built. A hardcoded
+# tag drifts: the port then builds one version while reporting another.
+export ZOPEN_STABLE_TAG="v${PYTHON_XXHASH_VERSION}"
 export ZOPEN_STABLE_DEPS="check_python grep"
 export ZOPEN_DEV_URL=""
 export ZOPEN_DEV_DEPS="check_python grep"
